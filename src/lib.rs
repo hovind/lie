@@ -1,4 +1,5 @@
 #![feature(const_generics)]
+#![feature(generic_associated_types)]
 
 #[cfg(test)]
 mod tests {
@@ -20,11 +21,18 @@ pub trait GroupDef {
     fn invert(g: Self::G) -> Self::G;
 }
 
-pub trait LieGroupDef<T, const N: usize>: GroupDef {
+pub trait LieGroupDef: GroupDef {
     type Algebra;
+    type Euclidean;
 
-    fn vee(a: Self::Algebra) -> Vector<T, N>;
-    fn hat(v: Vector<T, N>) -> Self::Algebra;
+    fn vee(a: Self::Algebra) -> Self::Euclidean;
+    fn hat(v: Self::Euclidean) -> Self::Algebra;
+
+    fn exp(a: Self::Algebra) -> Self::G;
+    fn log(g: Self::G) -> Self::Algebra;
+
+    fn Exp(v: Self::Euclidean) -> Self::G;
+    fn Log(g: Self::G) -> Self::Euclidean;
 }
 
 struct GroupElt<Def> where
@@ -47,6 +55,30 @@ impl<Def> GroupElt<Def> where
     }
     pub fn inverse(self) -> Self {
         Self::new_from(Def::invert(self.value))
+    }
+}
+
+impl<Def> GroupElt<Def> where
+    Def: LieGroupDef,
+{
+
+    fn vee(a: Def::Algebra) -> Def::Euclidean {
+        Def::vee(a)
+    }
+    fn hat(v: Def::Euclidean) -> Def::Algebra {
+        Def::hat(v)
+    }
+    fn exp(a: Def::Algebra) -> Self {
+        Self::new_from(Def::exp(a))
+    }
+    fn log(self) -> Def::Algebra {
+        Def::log(self.value)
+    }
+    fn Exp(v: Def::Euclidean) -> Self {
+        Self::new_from(Def::Exp(v))
+    }
+    fn Log(self) -> Def::Euclidean {
+        Def::Log(self.value)
     }
 }
 
@@ -74,15 +106,28 @@ impl<T, const N: usize> GroupDef for SODef<T, N> where
 }
 
 
-impl<T, const N: usize> LieGroupDef<T, N> for SODef<T, N> where
+impl<T, const N: usize> LieGroupDef for SODef<T, N> where
     SODef<T, N>: GroupDef,
 {
     type Algebra = Matrix<T, N, N>;
+    type Euclidean = Vector<T, N>;
 
     fn vee(a: Self::Algebra) -> Vector<T, N> {
         todo!()
     }
     fn hat(v: Vector<T, N>) -> Self::Algebra {
+        todo!()
+    }
+    fn exp(a: Self::Algebra) -> Self::G {
+        todo!()
+    }
+    fn log(g: Self::G) -> Self::Algebra {
+        todo!()
+    }
+    fn Exp(v: Self::Euclidean) -> Self::G {
+        todo!()
+    }
+    fn Log(g: Self::G) -> Self::Euclidean {
         todo!()
     }
 
@@ -108,19 +153,34 @@ impl<T> GroupDef for QDef<T> where
     }
 }
 
-impl<T> LieGroupDef<T, 3> for QDef<T> where
+impl<T> LieGroupDef for QDef<T> where
     T: Mul<Vector<T, 3>, Output = Vector<T, 3>> + One + Real,
     QDef<T>: GroupDef,
 {
     type Algebra = Vector<T, 3>;
+    type Euclidean = Vector<T, 3>;
 
-    fn vee(a: Self::Algebra) -> Vector<T, 3> {
+    fn vee(a: Self::Algebra) -> Self::Euclidean {
         T::one().div2() * a
     }
-    fn hat(v: Vector<T, 3>) -> Self::Algebra {
+    fn hat(v: Self::Euclidean) -> Self::Algebra {
         T::one().mul2() * v
+    }
+    fn exp(a: Self::Algebra) -> Self::G {
+        todo!()
+    }
+    fn log(g: Self::G) -> Self::Algebra {
+        todo!()
+    }
+    fn Exp(v: Self::Euclidean) -> Self::G {
+        todo!()
+    }
+    fn Log(g: Self::G) -> Self::Euclidean {
+        todo!()
     }
 
 }
 
 type Quat = GroupElt<QDef<f64>>;
+type SO<const N: usize> = GroupElt<SODef<f64, N>>;
+
