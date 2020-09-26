@@ -86,6 +86,16 @@ impl<Def> GroupElt<Def> where
     }
 }
 
+impl<Def> Add<Def::Euclidean> for GroupElt<Def> where
+    Def: LieGroupDef,
+{
+    type Output = Self;
+
+    fn add(self, other: Def::Euclidean) -> Self {
+        self.compose(Self::Exp(other))
+    }
+}
+
 
 struct SODef<T, const N: usize> {
     phantom: std::marker::PhantomData<Matrix<T, N, N>>,
