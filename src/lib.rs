@@ -31,7 +31,9 @@ pub trait LieGroupDef: GroupDef {
     fn exp(a: Self::Algebra) -> Self::G;
     fn log(g: Self::G) -> Self::Algebra;
 
+    #[allow(non_snake_case)]
     fn Exp(v: Self::Euclidean) -> Self::G;
+    #[allow(non_snake_case)]
     fn Log(g: Self::G) -> Self::Euclidean;
 }
 
@@ -74,9 +76,11 @@ impl<Def> GroupElt<Def> where
     fn log(self) -> Def::Algebra {
         Def::log(self.value)
     }
+    #[allow(non_snake_case)]
     fn Exp(v: Def::Euclidean) -> Self {
         Self::new_from(Def::Exp(v))
     }
+    #[allow(non_snake_case)]
     fn Log(self) -> Def::Euclidean {
         Def::Log(self.value)
     }
