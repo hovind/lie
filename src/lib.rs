@@ -8,7 +8,7 @@ mod tests {
     }
 }
 
-use aljabar::{Matrix, Vector, InnerSpace, One, Real, Zero};
+use aljabar::{Matrix, Vector, Quaternion, InnerSpace, One, Real, Zero};
 use std::ops::{Mul, Add};
 
 
@@ -51,11 +51,11 @@ impl<Def> GroupElt<Def> where
 }
 
 
-struct SODef<U> {
-    phantom: std::marker::PhantomData<U>,
+struct SODef<T, const N: usize> {
+    phantom: std::marker::PhantomData<Matrix<T, N, N>>,
 }
 
-impl<T, const N: usize> GroupDef for SODef<Matrix<T, N, N>> where
+impl<T, const N: usize> GroupDef for SODef<T, N> where
     T: Clone + PartialEq + Add<T, Output = T> + Mul<T, Output = T> + One + Real + Zero,
 {
     type G = Matrix<T, N, N>;
@@ -71,3 +71,41 @@ impl<T, const N: usize> GroupDef for SODef<Matrix<T, N, N>> where
         g.clone().transpose()
     }
 }
+
+
+impl<T, const N: usize> LieGroupDef<T, N> for SODef<T, N> where
+    SODef<T, N>: GroupDef,
+{
+    type Algebra = Matrix<T, N, N>;
+
+    fn vee(a: &Self::Algebra) -> Vector<T, N> {
+        todo!()
+    }
+    fn hat(v: &Vector<T, N>) -> Self::Algebra {
+        todo!()
+    }
+
+}
+
+struct QDef<T> {
+    phantom: std::marker::PhantomData<T>,
+}
+
+impl<T> GroupDef for QDef<T> where
+    T: Clone + PartialEq + Add<T, Output = T> + Mul<T, Output = T> + One + Real + Zero,
+{
+    type G = Quaternion<T>;
+
+    fn compose(lhs: &Self::G, rhs: &Self::G) -> Self::G {
+        todo!()
+        //Matrix::<T, N, N>::mul(lhs.clone(), rhs.clone())
+    }
+    fn identity() -> Self::G {
+        Quaternion::<T>::one()
+    }
+    fn invert(g: &Self::G) -> Self::G {
+        g.clone().conjugate()
+    }
+}
+
+type Quat = GroupElt<QDef<f64>>;
