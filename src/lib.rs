@@ -1,15 +1,20 @@
+#![allow(incomplete_features)]
 #![feature(const_generics)]
 #![feature(generic_associated_types)]
 
 #[cfg(test)]
 mod tests {
+    use crate::*;
     #[test]
     fn it_works() {
+        type Quat = GroupElt<QDef<f64>>;
+        type SO<const N: usize> = GroupElt<SODef<f64, N>>;
+
         assert_eq!(2 + 2, 4);
     }
 }
 
-use aljabar::{Matrix, Vector, Quaternion, InnerSpace, One, Real, VectorSpace, Zero};
+use aljabar::{Matrix, Vector, Quaternion, InnerSpace, MetricSpace, One, Real, RealInnerSpace, VectorSpace, Zero};
 use std::ops::{Mul, Add};
 
 
@@ -32,12 +37,16 @@ pub trait LieGroupDef: GroupDef {
     fn log(g: Self::G) -> Self::Algebra;
 
     #[allow(non_snake_case)]
-    fn Exp(v: Self::Euclidean) -> Self::G;
+    fn Exp(v: Self::Euclidean) -> Self::G {
+        Self::exp(Self::hat(v))
+    }
     #[allow(non_snake_case)]
-    fn Log(g: Self::G) -> Self::Euclidean;
+    fn Log(g: Self::G) -> Self::Euclidean {
+        Self::vee(Self::log(g))
+    }
 }
 
-struct GroupElt<Def> where
+pub struct GroupElt<Def> where
     Def: GroupDef,
 {
     value: Def::G,
@@ -64,24 +73,24 @@ impl<Def> GroupElt<Def> where
     Def: LieGroupDef,
 {
 
-    fn vee(a: Def::Algebra) -> Def::Euclidean {
+    pub fn vee(a: Def::Algebra) -> Def::Euclidean {
         Def::vee(a)
     }
-    fn hat(v: Def::Euclidean) -> Def::Algebra {
+    pub fn hat(v: Def::Euclidean) -> Def::Algebra {
         Def::hat(v)
     }
-    fn exp(a: Def::Algebra) -> Self {
+    pub fn exp(a: Def::Algebra) -> Self {
         Self::new_from(Def::exp(a))
     }
-    fn log(self) -> Def::Algebra {
+    pub fn log(self) -> Def::Algebra {
         Def::log(self.value)
     }
     #[allow(non_snake_case)]
-    fn Exp(v: Def::Euclidean) -> Self {
+    pub fn Exp(v: Def::Euclidean) -> Self {
         Self::new_from(Def::Exp(v))
     }
     #[allow(non_snake_case)]
-    fn Log(self) -> Def::Euclidean {
+    pub fn Log(self) -> Def::Euclidean {
         Def::Log(self.value)
     }
 }
@@ -91,11 +100,10 @@ impl<Def> Add<Def::Euclidean> for GroupElt<Def> where
 {
     type Output = Self;
 
-    fn add(self, other: Def::Euclidean) -> Self {
+    fn add(self, other: Def::Euclidean) -> Self::Output {
         self.compose(Self::Exp(other))
     }
 }
-
 
 struct SODef<T, const N: usize> {
     phantom: std::marker::PhantomData<Matrix<T, N, N>>,
@@ -120,7 +128,7 @@ impl<T, const N: usize> GroupDef for SODef<T, N> where
 }
 
 
-impl<T, const N: usize> LieGroupDef for SODef<T, N> where
+/*impl<T, const N: usize> LieGroupDef for SODef<T, N> where
     SODef<T, N>: GroupDef,
 {
     type Algebra = Matrix<T, N, N>;
@@ -145,7 +153,7 @@ impl<T, const N: usize> LieGroupDef for SODef<T, N> where
         todo!()
     }
 
-}
+}*/
 
 struct QDef<T> {
     phantom: std::marker::PhantomData<T>,
@@ -168,8 +176,9 @@ impl<T> GroupDef for QDef<T> where
 }
 
 impl<T> LieGroupDef for QDef<T> where
-    T: Mul<Vector<T, 3>, Output = Vector<T, 3>> + One + Real,
-    QDef<T>: GroupDef,
+    T: Clone + Mul<Vector<T, 3>, Output = Vector<T, 3>> + One + Real,
+    QDef<T>: GroupDef<G = Quaternion<T>>,
+    Vector<T, 3>: InnerSpace + MetricSpace<Metric = T> + RealInnerSpace + VectorSpace<Scalar = T>,
 {
     type Algebra = Vector<T, 3>;
     type Euclidean = Vector<T, 3>;
@@ -181,20 +190,11 @@ impl<T> LieGroupDef for QDef<T> where
         T::one().mul2() * v
     }
     fn exp(a: Self::Algebra) -> Self::G {
-        todo!()
+        let phi = a.clone().magnitude();
+        Quaternion::from_sv(T::cos(phi.clone()), T::sin(phi) * a.normalize())
     }
     fn log(g: Self::G) -> Self::Algebra {
         todo!()
     }
-    fn Exp(v: Self::Euclidean) -> Self::G {
-        todo!()
-    }
-    fn Log(g: Self::G) -> Self::Euclidean {
-        todo!()
-    }
-
 }
-
-type Quat = GroupElt<QDef<f64>>;
-type SO<const N: usize> = GroupElt<SODef<f64, N>>;
 
