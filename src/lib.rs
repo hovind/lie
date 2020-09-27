@@ -36,6 +36,21 @@ pub trait LieGroupDef: GroupDef {
     fn exp(a: Self::Algebra) -> Self::G;
     fn log(g: Self::G) -> Self::Algebra;
 
+    fn adjoint(g: Self::G, a: Self::Algebra) -> Self::Algebra {
+        //Self::compose(g, Self::compose(a, Self::invert(g)))
+        todo!()
+    }
+
+    #[allow(non_snake_case)]
+    fn Adjoint(g: Self::G, v: Self::Euclidean) -> Self::Euclidean {
+        Self::vee(Self::adjoint(g, Self::hat(v)))
+    }
+
+    /*#[allow(non_snake_case)]
+    fn Jr(v: Self::Euclidean) -> Self::Tangent;
+    #[allow(non_snake_case)]
+    fn Jl(v: Self::Euclidean) -> Self::Tangent;*/
+
     #[allow(non_snake_case)]
     fn Exp(v: Self::Euclidean) -> Self::G {
         Self::exp(Self::hat(v))
@@ -84,6 +99,13 @@ impl<Def> GroupElt<Def> where
     }
     pub fn log(self) -> Def::Algebra {
         Def::log(self.value)
+    }
+    pub fn adjoint(self, a: Def::Algebra) -> Def::Algebra {
+        Def::adjoint(self.value, a)
+    }
+    #[allow(non_snake_case)]
+    pub fn Adjoint(self, a: Def::Euclidean) -> Def::Euclidean {
+        Def::Adjoint(self.value, a)
     }
     #[allow(non_snake_case)]
     pub fn Exp(v: Def::Euclidean) -> Self {
@@ -194,7 +216,7 @@ impl<T> LieGroupDef for QDef<T> where
         Quaternion::from_sv(T::cos(phi.clone()), T::sin(phi) * a.normalize())
     }
     fn log(g: Self::G) -> Self::Algebra {
-        todo!()
+        T::acos(g.s) * g.v.normalize()
     }
 }
 
