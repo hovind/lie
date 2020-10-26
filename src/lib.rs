@@ -28,38 +28,36 @@ pub trait GroupDef {
 
 pub trait LieGroupDef: GroupDef {
     type Algebra;
-    type Euclidean;
+    type Vector;
 
-    fn vee(a: Self::Algebra) -> Self::Euclidean;
-    fn hat(v: Self::Euclidean) -> Self::Algebra;
+    fn vee(a: Self::Algebra) -> Self::Vector;
+    fn hat(v: Self::Vector) -> Self::Algebra;
 
     fn exp(a: Self::Algebra) -> Self::G;
     fn log(g: Self::G) -> Self::Algebra;
 
-    fn adjoint(g: Self::G, a: Self::Algebra) -> Self::Algebra {
-        //Self::compose(g, Self::compose(a, Self::invert(g)))
-        todo!()
-    }
+    fn adjoint(g: Self::G, a: Self::Algebra) -> Self::Algebra;
 
     #[allow(non_snake_case)]
-    fn Adjoint(g: Self::G, v: Self::Euclidean) -> Self::Euclidean {
+    fn Adjoint(g: Self::G, v: Self::Vector) -> Self::Vector {
         Self::vee(Self::adjoint(g, Self::hat(v)))
     }
 
     /*#[allow(non_snake_case)]
-    fn Jr(v: Self::Euclidean) -> Self::Tangent;
+    fn Jr(v: Self::Vector) -> Self::Tangent;
     #[allow(non_snake_case)]
-    fn Jl(v: Self::Euclidean) -> Self::Tangent;*/
+    fn Jl(v: Self::Vector) -> Self::Tangent;*/
 
     #[allow(non_snake_case)]
-    fn Exp(v: Self::Euclidean) -> Self::G {
+    fn Exp(v: Self::Vector) -> Self::G {
         Self::exp(Self::hat(v))
     }
     #[allow(non_snake_case)]
-    fn Log(g: Self::G) -> Self::Euclidean {
+    fn Log(g: Self::G) -> Self::Vector {
         Self::vee(Self::log(g))
     }
 }
+
 
 pub struct GroupElt<Def> where
     Def: GroupDef,
@@ -88,10 +86,10 @@ impl<Def> GroupElt<Def> where
     Def: LieGroupDef,
 {
 
-    pub fn vee(a: Def::Algebra) -> Def::Euclidean {
+    pub fn vee(a: Def::Algebra) -> Def::Vector {
         Def::vee(a)
     }
-    pub fn hat(v: Def::Euclidean) -> Def::Algebra {
+    pub fn hat(v: Def::Vector) -> Def::Algebra {
         Def::hat(v)
     }
     pub fn exp(a: Def::Algebra) -> Self {
@@ -104,25 +102,25 @@ impl<Def> GroupElt<Def> where
         Def::adjoint(self.value, a)
     }
     #[allow(non_snake_case)]
-    pub fn Adjoint(self, a: Def::Euclidean) -> Def::Euclidean {
+    pub fn Adjoint(self, a: Def::Vector) -> Def::Vector {
         Def::Adjoint(self.value, a)
     }
     #[allow(non_snake_case)]
-    pub fn Exp(v: Def::Euclidean) -> Self {
+    pub fn Exp(v: Def::Vector) -> Self {
         Self::new_from(Def::Exp(v))
     }
     #[allow(non_snake_case)]
-    pub fn Log(self) -> Def::Euclidean {
+    pub fn Log(self) -> Def::Vector {
         Def::Log(self.value)
     }
 }
 
-impl<Def> Add<Def::Euclidean> for GroupElt<Def> where
+impl<Def> Add<Def::Vector> for GroupElt<Def> where
     Def: LieGroupDef,
 {
     type Output = Self;
 
-    fn add(self, other: Def::Euclidean) -> Self::Output {
+    fn add(self, other: Def::Vector) -> Self::Output {
         self.compose(Self::Exp(other))
     }
 }
@@ -154,7 +152,7 @@ impl<T, const N: usize> GroupDef for SODef<T, N> where
     SODef<T, N>: GroupDef,
 {
     type Algebra = Matrix<T, N, N>;
-    type Euclidean = Vector<T, N>;
+    type Vector = Vector<T, N>;
 
     fn vee(a: Self::Algebra) -> Vector<T, N> {
         todo!()
@@ -168,10 +166,10 @@ impl<T, const N: usize> GroupDef for SODef<T, N> where
     fn log(g: Self::G) -> Self::Algebra {
         todo!()
     }
-    fn Exp(v: Self::Euclidean) -> Self::G {
+    fn Exp(v: Self::Vector) -> Self::G {
         todo!()
     }
-    fn Log(g: Self::G) -> Self::Euclidean {
+    fn Log(g: Self::G) -> Self::Vector {
         todo!()
     }
 
@@ -203,12 +201,12 @@ impl<T> LieGroupDef for QDef<T> where
     Vector<T, 3>: InnerSpace + MetricSpace<Metric = T> + RealInnerSpace + VectorSpace<Scalar = T>,
 {
     type Algebra = Vector<T, 3>;
-    type Euclidean = Vector<T, 3>;
+    type Vector = Vector<T, 3>;
 
-    fn vee(a: Self::Algebra) -> Self::Euclidean {
+    fn vee(a: Self::Algebra) -> Self::Vector {
         T::one().div2() * a
     }
-    fn hat(v: Self::Euclidean) -> Self::Algebra {
+    fn hat(v: Self::Vector) -> Self::Algebra {
         T::one().mul2() * v
     }
     fn exp(a: Self::Algebra) -> Self::G {
@@ -217,6 +215,10 @@ impl<T> LieGroupDef for QDef<T> where
     }
     fn log(g: Self::G) -> Self::Algebra {
         T::acos(g.s) * g.v.normalize()
+    }
+
+    fn adjoint(g: Self::G, a: Self::Algebra) -> Self::Algebra {
+        g * a
     }
 }
 
