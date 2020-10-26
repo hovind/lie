@@ -28,6 +28,12 @@ pub trait GroupDef {
 
 pub trait LieGroupDef: GroupDef {
     type Algebra;
+    /* I think I simply want an associated const à la
+     * `const N: usize`
+     * instead of these `type Vector` shenanigans,
+     * but none of this is possible given the current
+     * state of `const_generics` and `generic_associated_types`.
+     */
     type Vector;
 
     fn vee(a: Self::Algebra) -> Self::Vector;
