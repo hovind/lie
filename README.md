@@ -6,3 +6,9 @@ Structs of note are `GroupElt<Def>`, and traits of note are `GroupDef` and `LieG
 
 [Graydon]: https://github.com/graydon
 [Pergola]: https://github.com/graydon/pergola
+
+## Resources
+
+[A micro Lie theory for state estimation in robotics] is a wonderful read.
+
+[A micro Lie theory for state estimation in robotics]:https://arxiv.org/abs/1812.01537
