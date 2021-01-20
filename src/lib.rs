@@ -9,8 +9,12 @@ mod tests {
     fn it_works() {
         type Quat = GroupElt<QDef<f64>>;
         type SO<const N: usize> = GroupElt<SODef<f64, N>>;
+        let u = Quat::Exp(Vector::<f64, 3>::zero());
+        let v = Quat::Exp(Vector::<f64, 3>::zero());
+        println!("{:?} {:?}", u, v);
+        let q = Quat::compose(u, v);
 
-        assert_eq!(2 + 2, 4);
+        assert_eq!(Quat::Log(q), Vector::<f64, 3>::zero());
     }
 }
 
