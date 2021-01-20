@@ -65,6 +65,7 @@ pub trait LieGroupDef: GroupDef {
 }
 
 
+#[derive(Debug)]
 pub struct GroupElt<Def> where
     Def: GroupDef,
 {
@@ -181,6 +182,7 @@ impl<T, const N: usize> GroupDef for SODef<T, N> where
 
 }*/
 
+#[derive(Debug)]
 struct QDef<T> {
     phantom: std::marker::PhantomData<T>,
 }
