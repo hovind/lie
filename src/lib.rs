@@ -155,7 +155,7 @@ impl<T, const N: usize> GroupDef for SODef<T, N> where
 }
 
 
-/*impl<T, const N: usize> LieGroupDef for SODef<T, N> where
+impl<T, const N: usize> LieGroupDef for SODef<T, N> where
     SODef<T, N>: GroupDef,
 {
     type Algebra = Matrix<T, N, N>;
@@ -173,14 +173,10 @@ impl<T, const N: usize> GroupDef for SODef<T, N> where
     fn log(g: Self::G) -> Self::Algebra {
         todo!()
     }
-    fn Exp(v: Self::Vector) -> Self::G {
+    fn adjoint(g: Self::G, a: Self::Algebra) -> Self::Algebra {
         todo!()
     }
-    fn Log(g: Self::G) -> Self::Vector {
-        todo!()
-    }
-
-}*/
+}
 
 #[derive(Debug)]
 struct QDef<T> {
@@ -204,7 +200,7 @@ impl<T> GroupDef for QDef<T> where
 }
 
 impl<T> LieGroupDef for QDef<T> where
-    T: Clone + Mul<Vector<T, 3>, Output = Vector<T, 3>> + One + Real,
+    T: Clone + Mul<Vector<T, 3>, Output = Vector<T, 3>> + One + Real + Zero,
     QDef<T>: GroupDef<G = Quaternion<T>>,
     Vector<T, 3>: InnerSpace + MetricSpace<Metric = T> + RealInnerSpace + VectorSpace<Scalar = T>,
 {
@@ -219,10 +215,21 @@ impl<T> LieGroupDef for QDef<T> where
     }
     fn exp(a: Self::Algebra) -> Self::G {
         let phi = a.clone().magnitude();
-        Quaternion::from_sv(T::cos(phi.clone()), T::sin(phi) * a.normalize())
+        let u = if phi.is_zero() {
+            Vector::<T, 3>::zero()
+        } else {
+            T::sin(phi.clone()) * a.normalize()
+        };
+
+        Quaternion::from_sv(T::cos(phi.clone()), u)
     }
     fn log(g: Self::G) -> Self::Algebra {
-        T::acos(g.s) * g.v.normalize()
+        let phi = g.v.clone().magnitude();
+        if phi.is_zero() {
+            Vector::<T, 3>::zero()
+        } else {
+            T::atan2(phi, g.s) * g.v.normalize()
+        }
     }
 
     fn adjoint(g: Self::G, a: Self::Algebra) -> Self::Algebra {
